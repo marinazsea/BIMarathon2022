@@ -1,0 +1,47 @@
+- removing dublicates from the company table
+SELECT company_id,
+company_name,
+company_lat,
+company_lon,
+location_id,
+COUNT() AS CNT
+FROM company
+GROUP BY company_id,
+company_name,
+company_lat,
+company_lon,
+location_id
+HAVING COUNT() > 1;
+
+
+SELECT job_title,
+CASE
+WHEN job_title LIKE '%Engineer' THEN 'engineering'
+ELSE 'non-engineering'
+END AS job_field
+FROM job_details
+
+
+- COALESCE
+SELECT
+id,
+job_title,
+job_type,
+COALESCE (category, 'undefined') as category
+FROM job_details;
+
+- NULLIF
+SELECT
+job_id,
+job_title,
+job_type,
+NULLIF (inferred_salary_time_unit, 'yearly') as time_unit
+FROM job_details;
+
+- LEAST/ GREATEST
+SELECT
+job_id,
+job_title,
+job_type,
+GREATEST (10, inferred_salary_from) AS inferred_salary_from
+FROM job_details;
