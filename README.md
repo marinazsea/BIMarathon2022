@@ -10,7 +10,7 @@ Each skillset has different value. This report will help identifying it for prov
 . 
 ## Business Justification (Benefits/ROI)
 
-A methodology to find appropriate compensation for a curtain group of skills to be able to adjust to the current market trends. 
+A methodology to find appropriate compensation for a curtain group of skills or position to be able to adjust to the current market trends. 
 
 ## List of desired fields along the user story in the dashboard
 
