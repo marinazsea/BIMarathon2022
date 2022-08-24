@@ -34,33 +34,64 @@ FROM average_and_total
 -- Task #2
 -- Cities that have <20% of job posts. 
 
-WITH all_jobs AS (
-SELECT  DISTINCT l.city,
-        COUNT(j.job_title) 
-        OVER(PARTITION BY l.city) AS jobs_by_city,
-        ROUND(COUNT(j.job_title) 
-        OVER (PARTITION BY l.city) * COUNT(DISTINCT j.job_id)/100, 2) AS percent
+WITH jobs_by_city AS (
+SELECT 	DISTINCT l.city,
+		COUNT(j.job_id) OVER(PARTITION BY l.city) AS jobs_by_city
 FROM job_details  AS j
 JOIN location AS l
 ON j.location_id = l.location_id
-GROUP BY city, job_title
-ORDER BY jobs_by_city DESC)
+GROUP BY l.city, j.job_id)
 
-SELECT * 
-FROM all_jobs
-WHERE percent < 20
+,total_jobs AS (
+SELECT COUNT(job_id) AS all_jobs
+FROM job_details )
+
+SELECT 	DISTINCT c.city,
+		c.jobs_by_city,
+		c.jobs_by_city/t.all_jobs*100 AS percent
+FROM jobs_by_city AS c
+JOIN total_jobs AS t
+ORDER BY c.city
 
 -- Task #3
 -- Selecting the top job boards by job titles making over 100K in salary annualy 
+-- to use row number function or ranking function to find top 10 job_boards
 
-SELECT 	job_board,
-		(inferred_salary_from+inferred_salary_to)/2 AS salary,
-		COUNT(job_title) AS number_of_job_titles
+-- using rank
+WITH CTE AS (
+SELECT 	DISTINCT job_id,
+		(inferred_salary_from+inferred_salary_to)/2 AS salary
 FROM job_details
-WHERE 	(inferred_salary_from+inferred_salary_to)/2  >= 100000 
-		AND inferred_salary_time_unit = 'yearly'
-GROUP BY job_board, inferred_salary_from, inferred_salary_to
-ORDER BY job_board
+WHERE inferred_salary_time_unit = 'yearly')
+
+SELECT 	j.job_board,
+	c.salary,
+        rank() over (order by j.job_board)
+FROM CTE as C
+INNER JOIN job_details AS j
+ON j.job_id = c.job_id
+WHERE c.salary  >= 100000
+ORDER BY salary
+LIMIT 10
+
+
+-- using row number
+WITH CTE AS (
+SELECT 	DISTINCT job_id,
+		(inferred_salary_from+inferred_salary_to)/2 AS salary,
+        	row_number() over (partition by job_board) as rn
+FROM job_details
+WHERE inferred_salary_time_unit = 'yearly')
+
+SELECT 	j.job_board,
+		c.salary
+FROM CTE as C
+INNER JOIN job_details AS j
+ON j.job_id = c.job_id
+WHERE c.salary  >= 100000
+ORDER BY salary
+LIMIT 10
+
 
 
 -- Task #4
